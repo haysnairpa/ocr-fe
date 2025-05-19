@@ -9,9 +9,11 @@ import { validateImageFile } from '../../utils/fileUtils';
 
 /**
  * Symbol Detection Page component
+ * @param {Object} props - Component props
+ * @param {Function} props.onResultsUpdate - Callback to update parent component with symbol results
  * @returns {JSX.Element} - Rendered component
  */
-const SymbolPage = () => {
+const SymbolPage = ({ onResultsUpdate }) => {
   // State variables
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -70,6 +72,11 @@ const SymbolPage = () => {
       // Set the results
       setSymbolResults(symbolData.symbols);
       setSymbolVisualization(symbolData.visualization);
+      
+      // Update parent component with results
+      if (onResultsUpdate) {
+        onResultsUpdate(symbolData.symbols);
+      }
     } catch (error) {
       console.error('Error:', error);
       setError('An error occurred while processing the image. Please try again.');

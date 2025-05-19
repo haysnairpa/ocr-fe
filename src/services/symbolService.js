@@ -4,7 +4,7 @@
  */
 
 // API endpoint for symbol detection
-const SYMBOL_DETECTION_API = 'https://a474-35-196-100-241.ngrok-free.app/detect_symbols';
+const SYMBOL_DETECTION_API = 'https://your-api-endpoint.ngrok-free.app/detect_symbols';
 
 /**
  * Process symbol detection from an image

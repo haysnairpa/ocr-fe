@@ -9,9 +9,11 @@ import { validateImageFile, fileToBase64 } from '../../utils/fileUtils';
 
 /**
  * OCR Page component for text detection functionality
+ * @param {Object} props - Component props
+ * @param {Function} props.onResultsUpdate - Callback to update parent component with OCR results
  * @returns {JSX.Element} - Rendered component
  */
-const OCRPage = () => {
+const OCRPage = ({ onResultsUpdate }) => {
   // State variables
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -72,6 +74,11 @@ const OCRPage = () => {
       
       // Set the results
       setResults(textData);
+      
+      // Update parent component with results
+      if (onResultsUpdate) {
+        onResultsUpdate(textData);
+      }
       
       // Set visualizations
       setVisualizations({

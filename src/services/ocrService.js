@@ -4,7 +4,7 @@
  */
 
 // API endpoint for text detection
-const TEXT_DETECTION_API = 'https://2067-34-169-69-145.ngrok-free.app/detect';
+const TEXT_DETECTION_API = 'https://your-api-endpoint.ngrok-free.app/detect';
 
 /**
  * Process text detection from an image
