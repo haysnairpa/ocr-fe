@@ -24,12 +24,14 @@ const SymbolResults = ({ symbols, className = '' }) => {
             <li key={index} className="px-4 py-4 sm:px-6">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-indigo-600 truncate">
-                  {symbol.class || `Symbol ${index + 1}`}
+                  {symbol.label || symbol.class || `Symbol ${index + 1}`}
                 </p>
                 <div className="ml-2 flex-shrink-0 flex">
-                  <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                    Confidence: {symbol.confidence ? `${(symbol.confidence * 100).toFixed(1)}%` : 'N/A'}
-                  </p>
+                  {symbol.confidence && (
+                    <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      Confidence: {(symbol.confidence * 100).toFixed(1)}%
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="mt-2 sm:flex sm:justify-between">
@@ -39,6 +41,11 @@ const SymbolResults = ({ symbols, className = '' }) => {
                     Y({symbol.ymin?.toFixed(0) || 'N/A'}-{symbol.ymax?.toFixed(0) || 'N/A'})
                   </p>
                 </div>
+              </div>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">
+                  Size: {symbol.width?.toFixed(0) || 'N/A'} × {symbol.height?.toFixed(0) || 'N/A'}
+                </p>
               </div>
             </li>
           ))}

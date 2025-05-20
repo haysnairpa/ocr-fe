@@ -15,16 +15,31 @@ const ImagePreview = ({
 }) => {
   const imageRef = useRef(null);
   
+  // Menyimpan dimensi sebelumnya untuk mencegah pembaruan yang tidak perlu
+  const prevDimensionsRef = useRef(null);
+  
   useEffect(() => {
     if (previewUrl && imageRef.current) {
       const updateDimensions = () => {
-        if (onDimensionsChange) {
-          onDimensionsChange({
+        if (onDimensionsChange && imageRef.current) {
+          const newDimensions = {
             width: imageRef.current.naturalWidth,
             height: imageRef.current.naturalHeight,
             displayWidth: imageRef.current.clientWidth,
             displayHeight: imageRef.current.clientHeight
-          });
+          };
+          
+          // Hanya panggil onDimensionsChange jika dimensi benar-benar berubah
+          const prevDimensions = prevDimensionsRef.current;
+          if (!prevDimensions ||
+              prevDimensions.width !== newDimensions.width ||
+              prevDimensions.height !== newDimensions.height ||
+              prevDimensions.displayWidth !== newDimensions.displayWidth ||
+              prevDimensions.displayHeight !== newDimensions.displayHeight) {
+            
+            prevDimensionsRef.current = newDimensions;
+            onDimensionsChange(newDimensions);
+          }
         }
       };
 
@@ -34,7 +49,8 @@ const ImagePreview = ({
       }
 
       // Update dimensions when image loads
-      imageRef.current.addEventListener('load', updateDimensions);
+      const imageElement = imageRef.current;
+      imageElement.addEventListener('load', updateDimensions);
 
       // Create a resize observer to update dimensions when container resizes
       const resizeObserver = new ResizeObserver(() => {
@@ -47,14 +63,15 @@ const ImagePreview = ({
         resizeObserver.observe(imageRef.current);
       }
 
+      // Cleanup function
       return () => {
-        if (imageRef.current) {
-          imageRef.current.removeEventListener('load', updateDimensions);
-          resizeObserver.disconnect();
+        if (imageElement) {
+          imageElement.removeEventListener('load', updateDimensions);
         }
+        resizeObserver.disconnect();
       };
     }
-  }, [previewUrl, onDimensionsChange]);
+  }, [previewUrl]); // Hanya jalankan ulang effect ketika previewUrl berubah
 
   if (!previewUrl) {
     return (

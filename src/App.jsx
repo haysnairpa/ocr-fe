@@ -1,41 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './App.css';
-import OCRPage from './components/OCR/OCRPage';
-import SymbolPage from './components/Symbols/SymbolPage';
-import LegalValidationPage from './components/LegalValidation/LegalValidationPage';
-import TabNavigation from './components/common/TabNavigation';
+import IntegratedPage from './components/Integrated/IntegratedPage';
+import ApiUrlSetter from './components/common/ApiUrlSetter';
 
 /**
- * Main App component that orchestrates the different pages of the application
+ * Main App component with integrated OCR, Symbol Detection, and Legal Validation
  * @returns {JSX.Element} - Rendered component
  */
 function App() {
-  // State variables for the main app
-  const [activeTab, setActiveTab] = useState('text'); // 'text', 'symbol', or 'legal'
-  const [ocrResults, setOcrResults] = useState(null);
-  const [symbolResults, setSymbolResults] = useState(null);
-
-  // Define tabs for navigation
-  const tabs = [
-    { id: 'text', label: 'Text Detection' },
-    { id: 'symbol', label: 'Symbol Detection' },
-    { id: 'legal', label: 'Legal Validation' }
-  ];
-
-  // Handle tab change
-  const handleTabChange = (tabId) => {
-    setActiveTab(tabId);
-  };
-
-  // Handle OCR results update
-  const handleOcrResultsUpdate = (results) => {
-    setOcrResults(results);
-  };
-
-  // Handle symbol results update
-  const handleSymbolResultsUpdate = (results) => {
-    setSymbolResults(results);
-  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -47,31 +19,11 @@ function App() {
       
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* Tab Navigation */}
-          <TabNavigation 
-            activeTab={activeTab} 
-            onTabChange={handleTabChange} 
-            tabs={tabs} 
-            className="mb-6"
-          />
+          {/* API URL Setter */}
+          <ApiUrlSetter />
           
-          {/* Tab Content */}
-          <div className="mt-4">
-            {activeTab === 'text' && (
-              <OCRPage onResultsUpdate={handleOcrResultsUpdate} />
-            )}
-            
-            {activeTab === 'symbol' && (
-              <SymbolPage onResultsUpdate={handleSymbolResultsUpdate} />
-            )}
-            
-            {activeTab === 'legal' && (
-              <LegalValidationPage 
-                ocrResults={ocrResults} 
-                symbolResults={symbolResults} 
-              />
-            )}
-          </div>
+          {/* Integrated Page with all functionality */}
+          <IntegratedPage />
         </div>
       </main>
       

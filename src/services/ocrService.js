@@ -3,8 +3,8 @@
  * Handles all interactions with the OCR API
  */
 
-// API endpoint for text detection
-const TEXT_DETECTION_API = 'https://your-api-endpoint.ngrok-free.app/detect';
+import { API_ENDPOINTS } from '../config/apiConfig';
+
 
 /**
  * Process text detection from an image
@@ -18,7 +18,7 @@ export const detectText = async (imageFile) => {
     textFormData.append('image', imageFile);
 
     // Call text detection API
-    const textResponse = await fetch(TEXT_DETECTION_API, {
+    const textResponse = await fetch(API_ENDPOINTS.TEXT_DETECTION, {
       method: 'POST',
       body: textFormData,
     });
@@ -39,59 +39,58 @@ export const detectText = async (imageFile) => {
     }
     
     // Process each result to extract text
+    // The backend returns results with text in each paragraph object
     const extractedResults = textData.results.map((result, index) => {
-      // Try to extract text from the result object
-      let extractedText = '';
-      
-      // Check if the result has a direct text property
-      if (result.text) {
-        extractedText = result.text;
-      }
-      // Check if the result has a 'lines' property with text
-      else if (result.lines && Array.isArray(result.lines)) {
-        // Extract text from lines
-        const lineTexts = [];
-        for (const line of result.lines) {
-          if (typeof line === 'string') {
-            lineTexts.push(line);
-          } else if (Array.isArray(line)) {
-            lineTexts.push(line.join(' '));
-          } else if (line && typeof line === 'object') {
-            if (line.text) {
-              lineTexts.push(line.text);
+      // The backend already includes a 'text' property in each result
+      // But we'll handle cases where it might be missing
+      if (!result.text) {
+        let extractedText = '';
+        
+        // Try to extract text from lines array if present
+        if (result.lines && Array.isArray(result.lines)) {
+          const lineTexts = [];
+          
+          for (const line of result.lines) {
+            // Handle different possible structures of lines
+            if (typeof line === 'string') {
+              lineTexts.push(line);
+            } else if (line && typeof line === 'object') {
+              // If line is an object with words property
+              if (line.words && Array.isArray(line.words)) {
+                const wordTexts = [];
+                for (const word of line.words) {
+                  if (typeof word === 'string') {
+                    wordTexts.push(word);
+                  } else if (word && typeof word === 'object' && word.text) {
+                    wordTexts.push(word.text);
+                  }
+                }
+                lineTexts.push(wordTexts.join(' '));
+              }
             }
           }
+          
+          extractedText = lineTexts.join(' ');
         }
-        extractedText = lineTexts.join(' ');
-      }
-      // Check if the result has a 'words' property with text
-      else if (result.words && Array.isArray(result.words)) {
-        // Extract text from words
-        const wordTexts = [];
-        for (const word of result.words) {
-          if (typeof word === 'string') {
-            wordTexts.push(word);
-          } else if (word && typeof word === 'object' && word.text) {
-            wordTexts.push(word.text);
+        
+        // If we still couldn't extract any text, use the ID or a default value
+        if (!extractedText) {
+          if (result.id !== undefined) {
+            extractedText = `Region ${result.id}`;
+          } else {
+            extractedText = `Region ${index + 1}`;
           }
         }
-        extractedText = wordTexts.join(' ');
+        
+        // Add the extracted text to the result
+        return {
+          ...result,
+          text: extractedText
+        };
       }
       
-      // If we couldn't extract any text, use the ID or a default value
-      if (!extractedText) {
-        if (result.id !== undefined) {
-          extractedText = `Region ${result.id}`;
-        } else {
-          extractedText = `Region ${index + 1}`;
-        }
-      }
-      
-      // Create a new result object with the extracted text
-      return {
-        ...result,
-        text: extractedText
-      };
+      // If text is already present, return the result as is
+      return result;
     });
     
     // Create the final processed results object
@@ -101,6 +100,39 @@ export const detectText = async (imageFile) => {
     };
   } catch (error) {
     console.error('Error in detectText:', error);
+    throw error;
+  }
+};
+
+/**
+ * Refine detected text using the LLM-based refinement endpoint
+ * @param {string} imageBase64 - Base64 encoded image
+ * @param {Array} detectionResults - Results from text detection
+ * @returns {Promise<Object>} - The refined text results
+ */
+export const refineText = async (imageBase64, detectionResults) => {
+  try {
+    const response = await fetch(API_ENDPOINTS.TEXT_REFINEMENT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        image: imageBase64,
+        result: detectionResults
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error in text refinement! Status: ${response.status}`);
+    }
+
+    const refinedData = await response.json();
+    console.log('Text Refinement API Response:', refinedData);
+    
+    return refinedData;
+  } catch (error) {
+    console.error('Error in refineText:', error);
     throw error;
   }
 };

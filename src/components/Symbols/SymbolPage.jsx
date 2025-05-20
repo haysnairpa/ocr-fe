@@ -3,6 +3,7 @@ import FileUploader from '../common/FileUploader';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ImagePreview from '../OCR/ImagePreview';
 import SymbolResults from './SymbolResults';
+import SymbolVisualization from './SymbolVisualization';
 import VisualizationView from '../common/VisualizationView';
 import { detectSymbols } from '../../services/symbolService';
 import { validateImageFile } from '../../utils/fileUtils';
@@ -20,6 +21,7 @@ const SymbolPage = ({ onResultsUpdate }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [symbolResults, setSymbolResults] = useState(null);
+  const [imageShape, setImageShape] = useState(null);
   const [symbolVisualization, setSymbolVisualization] = useState(null);
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
 
@@ -30,6 +32,7 @@ const SymbolPage = ({ onResultsUpdate }) => {
     // Reset states
     setError(null);
     setSymbolResults(null);
+    setImageShape(null);
     setSymbolVisualization(null);
 
     // Validate file
@@ -63,6 +66,7 @@ const SymbolPage = ({ onResultsUpdate }) => {
     setIsLoading(true);
     setError(null);
     setSymbolResults(null);
+    setImageShape(null);
     setSymbolVisualization(null);
 
     try {
@@ -71,6 +75,7 @@ const SymbolPage = ({ onResultsUpdate }) => {
       
       // Set the results
       setSymbolResults(symbolData.symbols);
+      setImageShape(symbolData.imageShape);
       setSymbolVisualization(symbolData.visualization);
       
       // Update parent component with results
@@ -168,17 +173,40 @@ const SymbolPage = ({ onResultsUpdate }) => {
           </div>
         </div>
         
-        {/* Visualization */}
-        {symbolVisualization && (
-          <div className="mt-6">
-            <h3 className="text-md font-medium text-gray-700 mb-2">Symbol Visualization</h3>
-            <VisualizationView 
-              visualizationData={symbolVisualization} 
-              altText="Symbol Detection Visualization" 
-              className="max-w-full"
-            />
-          </div>
-        )}
+        {/* Visualization with bounding boxes */}
+        <div className="mt-6">
+          <h3 className="text-md font-medium text-gray-700 mb-2">Symbol Visualization</h3>
+          
+          {isLoading ? (
+            <div className="flex justify-center items-center h-[300px]">
+              <LoadingSpinner size="lg" />
+            </div>
+          ) : symbolVisualization ? (
+            <div>
+              <h4 className="text-sm font-medium text-gray-600 mb-1">Model Visualization (with confidence)</h4>
+              <VisualizationView 
+                visualizationData={symbolVisualization} 
+                altText="Symbol Detection Visualization from Model" 
+                className="max-w-full mb-4"
+              />
+            </div>
+          ) : previewUrl && symbolResults && symbolResults.length > 0 ? (
+            <div>
+              <h4 className="text-sm font-medium text-gray-600 mb-1">Custom Visualization</h4>
+              <SymbolVisualization 
+                imageUrl={previewUrl} 
+                symbols={symbolResults} 
+                className="max-w-full"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center bg-gray-50 p-4 rounded-md h-[300px]">
+              <p className="text-gray-500 italic">
+                {previewUrl ? 'Click "Detect Symbols" to analyze the image' : 'Please upload an image to begin'}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
