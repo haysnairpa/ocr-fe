@@ -44,8 +44,13 @@ const SymbolResults = ({ symbols, className = '' }) => {
               </div>
               <div className="mt-2">
                 <p className="text-sm text-gray-500">
-                  Size: {symbol.width?.toFixed(0) || 'N/A'} × {symbol.height?.toFixed(0) || 'N/A'}
+                  Size: {symbol.width?.toFixed(0) || 'N/A'} × {symbol.height?.toFixed(0) || 'N/A'} px
                 </p>
+                {(symbol.width_cm || symbol.height_cm) && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Size (cm): {symbol.width_cm_display || `${symbol.width_cm?.toFixed(2)} cm` || 'N/A'} × {symbol.height_cm_display || `${symbol.height_cm?.toFixed(2)} cm` || 'N/A'}
+                  </p>
+                )}
               </div>
             </li>
           ))}

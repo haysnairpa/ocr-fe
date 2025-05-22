@@ -125,22 +125,24 @@ const LegalValidationPage = ({ ocrResults, symbolResults }) => {
       </div>
       
       {/* Results section */}
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-white shadow rounded-lg p-6 flex flex-col" style={{ minHeight: '600px' }}>
         <h2 className="text-lg font-medium text-gray-900 mb-4">Validation Results</h2>
         
-        {isValidating ? (
-          <div className="flex justify-center items-center h-[300px]">
-            <LoadingSpinner size="lg" />
-          </div>
-        ) : validationResults ? (
-          <ValidationResults validationResults={validationResults} />
-        ) : (
-          <div className="flex items-center justify-center bg-gray-50 p-4 rounded-md h-[200px]">
-            <p className="text-gray-500 italic">
-              {isLegalTermUploaded ? 'Click "Validate" to check compliance' : 'Please upload a legal term file to begin'}
-            </p>
-          </div>
-        )}
+        <div className="flex-grow flex flex-col" style={{ minHeight: '500px' }}>
+          {isValidating ? (
+            <div className="flex justify-center items-center h-full">
+              <LoadingSpinner size="lg" />
+            </div>
+          ) : validationResults ? (
+            <ValidationResults validationResults={validationResults} className="h-full" />
+          ) : (
+            <div className="flex items-center justify-center bg-gray-50 p-4 rounded-md h-full">
+              <p className="text-gray-500 italic">
+                {isLegalTermUploaded ? 'Click "Validate" to check compliance' : 'Please upload a legal term file to begin'}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

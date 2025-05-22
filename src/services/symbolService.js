@@ -12,6 +12,8 @@ import { API_ENDPOINTS } from '../config/apiConfig';
  */
 export const detectSymbols = async (imageFile) => {
   try {
+    console.log('Attempting to detect symbols from image:', imageFile.name);
+    
     // Create form data for symbol detection
     const symbolFormData = new FormData();
     symbolFormData.append('image', imageFile);
@@ -27,6 +29,8 @@ export const detectSymbols = async (imageFile) => {
     });
     
     if (!symbolResponse.ok) {
+      const errorText = await symbolResponse.text();
+      console.error('Symbol detection API error:', errorText);
       throw new Error(`HTTP error in symbol detection! Status: ${symbolResponse.status}`);
     }
     
@@ -35,23 +39,62 @@ export const detectSymbols = async (imageFile) => {
     
     // Process symbol results from the updated YOLOv8 model response format
     // The new format has a "labels" array with objects containing label, confidence, x, y, width, height
-    const processedSymbols = symbolData.labels?.map(label => ({
-      id: Math.random().toString(36).substr(2, 9),
-      class: label.label?.toLowerCase(), // Ensure class name is lowercase for consistency
-      xmin: label.x,
-      ymin: label.y,
-      xmax: label.x + label.width,
-      ymax: label.y + label.height,
-      width: label.width,
-      height: label.height,
-      label: label.label,
-      confidence: label.confidence // Now includes confidence from the backend
-    })) || [];
+    const imageShape = symbolData.image_shape || { width: 0, height: 0, width_cm: 0, height_cm: 0 };
+    
+    console.log('Image shape from backend:', imageShape);
+    
+    const processedSymbols = symbolData.labels?.map(label => {
+      // Backend mengirimkan ukuran gambar keseluruhan dalam cm, bukan ukuran simbol
+      // Kita perlu menghitung ukuran simbol dalam cm berdasarkan proporsinya terhadap ukuran gambar
+      let symbolWidthCm, symbolHeightCm;
+      
+      // Hitung ukuran simbol dalam cm berdasarkan proporsi terhadap ukuran gambar
+      symbolWidthCm = (label.width / imageShape.width) * imageShape.width_cm;
+      symbolHeightCm = (label.height / imageShape.height) * imageShape.height_cm;
+      
+      // Log untuk debugging
+      console.log(`Symbol ${label.label} dimensions:`, {
+        width_px: label.width,
+        height_px: label.height,
+        image_width_px: imageShape.width,
+        image_height_px: imageShape.height,
+        image_width_cm: imageShape.width_cm,
+        image_height_cm: imageShape.height_cm,
+        calculated_width_cm: symbolWidthCm,
+        calculated_height_cm: symbolHeightCm
+      });
+      
+      // Pastikan nilai tidak NaN atau undefined
+      symbolWidthCm = isNaN(symbolWidthCm) ? 0 : symbolWidthCm;
+      symbolHeightCm = isNaN(symbolHeightCm) ? 0 : symbolHeightCm;
+      
+      const result = {
+        id: Math.random().toString(36).substr(2, 9),
+        class: label.label?.toLowerCase(), // Ensure class name is lowercase for consistency
+        xmin: label.x,
+        ymin: label.y,
+        xmax: label.x + label.width,
+        ymax: label.y + label.height,
+        width: label.width,
+        height: label.height,
+        // Tambahkan ukuran dalam cm dengan 2 angka di belakang koma
+        width_cm: parseFloat(symbolWidthCm.toFixed(2)),
+        height_cm: parseFloat(symbolHeightCm.toFixed(2)),
+        // Format string untuk tampilan
+        width_cm_display: `${symbolWidthCm.toFixed(2)} cm`,
+        height_cm_display: `${symbolHeightCm.toFixed(2)} cm`,
+        label: label.label,
+        confidence: label.confidence // Now includes confidence from the backend
+      };
+      
+      console.log(`Processed symbol ${label.label}:`, result);
+      return result;
+    }) || [];
     
     return {
       symbols: processedSymbols,
       visualization: symbolData.visualization || '', // Now includes visualization data from backend
-      imageShape: symbolData.image_shape || { width: 0, height: 0 }
+      imageShape: imageShape
     };
   } catch (error) {
     console.error('Error in detectSymbols:', error);
