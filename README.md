@@ -23,6 +23,7 @@ This system automates the verification of packaging labels and layouts by detect
 ### Backend Requirements
 - **Google Account**: Access to Google Colab for running backend notebooks
 - **Stable Internet Connection**: For communicating between frontend and Colab-hosted backend
+- **Access to Model Files**: Required model files are stored in Google Drive (links provided below)
 
 ## Installation and Setup
 
@@ -45,7 +46,19 @@ This system automates the verification of packaging labels and layouts by detect
 
 ### Backend Setup
 
-The backend consists of two Google Colab notebooks that need to be run separately:
+The backend consists of two Google Colab notebooks that need to be run separately. You'll also need access to the model files stored in Google Drive.
+
+#### Model Files
+
+1. **Text Detection Models**
+   - Access the models here: [Text Detection Models](https://drive.google.com/drive/folders/10Oo7unvtqh-fukg-CxlbqDmk-ZmxFFnP?usp=sharing)
+   - These include Hi-SAM and ParseQ models for text detection and recognition
+   - Don't forget to add shortcut this drive into your own drive
+
+2. **Symbol Detection Models**
+   - Access the models here: [Symbol Detection Models](https://drive.google.com/drive/folders/1mZqPg0r3q3gxMS923ZyIoLx8TvdxTfoW?usp=sharing)
+   - These include YOLOv8 models trained for symbol detection
+   - Don't forget to add shortcut this drive into your own drive
 
 #### Text Detection Backend
 
@@ -57,6 +70,7 @@ The backend consists of two Google Colab notebooks that need to be run separatel
    - Open the table of content in colab, and navigate to cell with title "Flask Backend"
    - Start to Run the cells from there sequentially until the Flask server starts
    - Mount your Google Drive when prompted
+   - Ensure the Symbol Detection Models are accessible in your Drive
    - Note the ngrok URL displayed (something like `https://xxxx-xx-xx-xxx-xx.ngrok.io`)
 
 #### Symbol Detection Backend
@@ -69,6 +83,7 @@ The backend consists of two Google Colab notebooks that need to be run separatel
    - Navigate to the cell with the title of "BACKEND"
    - Run cells sequentially, start from there, until the Flask server starts
    - Mount your Google Drive when prompted
+   - Ensure the Symbol Detection Models are accessible in your Drive
    - Note the ngrok URL displayed
 
 ### Connecting Frontend to Backend
